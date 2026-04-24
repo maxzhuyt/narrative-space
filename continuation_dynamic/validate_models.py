@@ -21,8 +21,13 @@ Run on a GPU compute node after:
 import os
 import sys
 
-os.environ["HF_HOME"] = "/projects/bgye/models/hf_cache"
-os.environ["HF_TOKEN"] = ""
+os.environ.setdefault("HF_HOME", "/projects/bgye/models/hf_cache")
+
+# HF_TOKEN must be provided by the caller's shell environment — typically
+# via `set -a; source /projects/bgye/yzhu38/narrative_project/.env; set +a`
+# in the sbatch wrapper. huggingface_hub reads it from os.environ automatically.
+if not os.environ.get("HF_TOKEN"):
+    sys.exit("HF_TOKEN not set. Run `source .env` (project root) before this script.")
 
 MODELS = [
     ("Qwen/Qwen2.5-32B",                        "base",      False),
