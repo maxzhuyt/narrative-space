@@ -65,8 +65,8 @@ Model class membership is declared by the `BASE_MODELS`, `REASONING_MODELS`, `VL
 | 4 | [run_mistral_small_24b_instruct.sbatch](continuation_dynamic/run_mistral_small_24b_instruct.sbatch) | `mistralai/Mistral-Small-24B-Instruct-2501` | 1 | |
 | 5 | [run_gemma4_31b_base.sbatch](continuation_dynamic/run_gemma4_31b_base.sbatch) | `google/gemma-4-31B` | 1 | base, VLM |
 | 6 | [run_gemma4_31b_it.sbatch](continuation_dynamic/run_gemma4_31b_it.sbatch) | `google/gemma-4-31B-it` | 1 | VLM |
-| 7 | [run_llama4_scout_base.sbatch](continuation_dynamic/run_llama4_scout_base.sbatch) | `meta-llama/Llama-4-Scout-17B-16E` | 4 | base, VLM, TP=4, gated |
-| 8 | [run_llama4_scout_instruct.sbatch](continuation_dynamic/run_llama4_scout_instruct.sbatch) | `meta-llama/Llama-4-Scout-17B-16E-Instruct` | 4 | VLM, TP=4, gated |
+| 7 | [run_llama4_scout_base.sbatch](continuation_dynamic/run_llama4_scout_base.sbatch) | `meta-llama/Llama-4-Scout-17B-16E` | 2 | base, VLM, TP=2, gated |
+| 8 | [run_llama4_scout_instruct.sbatch](continuation_dynamic/run_llama4_scout_instruct.sbatch) | `meta-llama/Llama-4-Scout-17B-16E-Instruct` | 2 | VLM, TP=2, gated |
 | 9 | [run_qwen3_32b_nothinking.sbatch](continuation_dynamic/run_qwen3_32b_nothinking.sbatch) | `Qwen/Qwen3-32B` | 1 | reasoning, no thinking |
 | 10 | [run_qwen3_32b_thinking.sbatch](continuation_dynamic/run_qwen3_32b_thinking.sbatch) | `Qwen/Qwen3-32B` | 1 | reasoning, `--thinking`, mult=2.0 |
 | 11 | [run_qwen35_35b_a3b_nothinking.sbatch](continuation_dynamic/run_qwen35_35b_a3b_nothinking.sbatch) | `Qwen/Qwen3.5-35B-A3B` | 1 | reasoning, MoE |
@@ -161,7 +161,7 @@ The `MAX_STORY_ID` filter (default 200) is bypassed when sbatch passes `--no-id-
 
 ## Cluster environment (NCSA DeltaAI)
 
-- **Partition**: `ghx4` (ARM Grace-Hopper nodes, 4× H100 96 GB HBM3 each)
+- **Partition**: `ghx4` (ARM Grace-Hopper nodes, 4× NVIDIA GH200 120 GB per node, aarch64 Grace CPU with 288 cores, 870 GB RAM; gh001–002 have 488 GB). 150 nodes total.
 - **Account**: `bgye-dtai-gh`
 - **Conda env**: `/projects/bgye/envs/llm`
 - **Filesystems**: home (100 GB, scrubbed every 90 days) for configs only; `/projects/bgye/` shared team workspace (where this tree lives); `/work/nvme/bgye/yzhu38/cache/` for fast-scratch compile caches

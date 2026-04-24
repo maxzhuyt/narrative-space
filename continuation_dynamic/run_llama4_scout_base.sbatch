@@ -3,7 +3,7 @@
 #SBATCH --account=bgye-dtai-gh
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
-#SBATCH --gpus-per-node=4
+#SBATCH --gpus-per-node=2
 #SBATCH --cpus-per-task=16
 #SBATCH --mem=64G
 #SBATCH --time=48:00:00
@@ -35,6 +35,6 @@ srun python run_continuations.py \
     --model meta-llama/Llama-4-Scout-17B-16E \
     --data-dir /projects/bgye/yzhu38/narrative_project/NEWCORPUS_CLEANED \
     --results-dir /projects/bgye/yzhu38/narrative_project/continuation_dynamic/results_llama4_scout_base \
-    --no-id-filter --tensor-parallel-size 4
+    --no-id-filter --tensor-parallel-size 2
 
 echo "=== Done at $(date) ==="
