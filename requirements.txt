@@ -1,19 +1,26 @@
-# ── GPU inference (generation + embedding computation) ────────────────────────
-# Tested in vllm_env on Midway3 H200 (CUDA 12.9, PyTorch 2.9)
-vllm>=0.11.2
-torch>=2.9.0
-transformers>=4.57.0
-sentence-transformers>=5.3.0
+# Python dependencies for the narrative-continuation pipeline.
+#
+# Tested environment (NCSA DeltaAI, partition ghx4, conda env
+# /projects/bgye/envs/llm):
+#   Python 3.11.15
+#   CUDA 12.9
+#   ARM Grace-Hopper (GH200) / H100 96 GB HBM3
+#
+# The sbatch wrappers activate the pre-built env directly; this file is
+# provided for reproducing the env elsewhere (e.g. local CPU-only analysis
+# or a new cluster) via:
+#
+#   pip install -r requirements.txt
+#
+# For the exact on-cluster build, see
+# /projects/bgye/envs/llm (`conda list` inside that env).
 
-# ── Notebook / analysis (CPU, no GPU required) ────────────────────────────────
-# Tested in honest_llama_env; matplotlib not available in vllm_env
-matplotlib>=3.10.0
-numpy>=2.2.0
+# ── Core runtime: vLLM + its deps ────────────────────────────────────────
+# vllm pulls in a compatible torch; we pin torch separately to lock the
+# CUDA 12.9 wheel explicitly on the cluster.
+vllm>=0.19.1
+torch>=2.10.0
+transformers>=5.6.0
 
-# ── External API calls ────────────────────────────────────────────────────────
-# DeepSeek API (peak annotations in analysis_predictability.ipynb)
-openai>=2.26.0
-
-# ── Utilities ────────────────────────────────────────────────────────────────
-requests>=2.32.0
-python-dotenv>=1.2.0
+# ── HuggingFace hub (token auth + model-metadata checks) ─────────────────
+huggingface_hub>=1.11.0
