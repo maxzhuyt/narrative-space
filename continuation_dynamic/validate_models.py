@@ -45,12 +45,17 @@ MODELS = [
     ("Qwen/Qwen3-32B",                             "reasoning", False),
     ("Qwen/Qwen3.5-35B-A3B",                       "reasoning", False),
     ("Qwen/QwQ-32B",                               "reasoning", False),
+    ("allenai/Olmo-3-1125-32B",                    "base",      False),
+    ("allenai/Olmo-3.1-32B-Instruct-SFT",          "instruct",  False),
+    ("allenai/Olmo-3.1-32B-Instruct-DPO",          "instruct",  False),
+    ("allenai/Olmo-3.1-32B-Instruct",              "instruct",  False),
+    ("allenai/Olmo-3-32B-Think-SFT",               "reasoning", False),
+    ("allenai/Olmo-3-32B-Think-DPO",               "reasoning", False),
+    ("allenai/Olmo-3.1-32B-Think",                 "reasoning", False),
 ]
 
 sys.path.insert(0, "/projects/bgye/yzhu38/narrative_project/continuation_dynamic")
 from run_continuations import is_base_model, is_reasoning_model, strip_thinking
-
-import re
 
 THINK_OPEN = "<" + "think" + ">"
 THINK_CLOSE = "</" + "think" + ">"

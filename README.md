@@ -2,7 +2,7 @@
 
 Measuring how language models predict story continuations as context is progressively revealed. Unpredictability (the model's persistent inability to anticipate the rest of the story) is used as a proxy for narrative surprise.
 
-**Current experiment**: a 13-run comparison across base, instruct, and reasoning models on a shared 5001-story corpus, generating 5 continuations per position at 4 revealed-fraction positions (40/60/80/90%).
+**Current experiment**: a 20-run comparison across base, instruct, and reasoning models on a shared 5001-story corpus, generating 5 continuations per position at 4 revealed-fraction positions (40/60/80/90%). Includes the full Olmo-3 32B post-training staircase (base → SFT → DPO → RLVR for both Instruct and Think branches) for a within-family stage-by-stage ablation.
 
 > If you're looking for the earlier v1–v4 close-reading / 100-ending-distance work, see [`archive/2026-04-cleanup/README_pre_continuation_dynamic.md`](archive/2026-04-cleanup/README_pre_continuation_dynamic.md). All the old code lives in `archive/2026-04-cleanup/`.
 
@@ -55,7 +55,7 @@ Key flags (see `--help` for all):
 
 Model class membership is declared by the `BASE_MODELS`, `REASONING_MODELS`, `VLM_MODELS`, and `MISTRAL_MODELS` sets near the top of the script. VLM models receive `limit_mm_per_prompt={"image": 0}`. Mistral models receive `tokenizer_mode=config_format=load_format="mistral"`.
 
-### sbatch files — 13 production jobs
+### sbatch files — 20 production jobs
 
 | # | File | Model | GPUs | Notes |
 |---|---|---|---|---|
@@ -72,12 +72,20 @@ Model class membership is declared by the `BASE_MODELS`, `REASONING_MODELS`, `VL
 | 11 | [run_qwen35_35b_a3b_nothinking.sbatch](continuation_dynamic/run_qwen35_35b_a3b_nothinking.sbatch) | `Qwen/Qwen3.5-35B-A3B` | 1 | reasoning, MoE |
 | 12 | [run_qwen35_35b_a3b_thinking.sbatch](continuation_dynamic/run_qwen35_35b_a3b_thinking.sbatch) | `Qwen/Qwen3.5-35B-A3B` | 1 | reasoning, MoE, `--thinking`, mult=2.0 |
 | 13 | [run_qwq_32b.sbatch](continuation_dynamic/run_qwq_32b.sbatch) | `Qwen/QwQ-32B` | 1 | reasoning-only, always thinks (no toggle), mult=2.0 |
+| 14 | [run_olmo3_base.sbatch](continuation_dynamic/run_olmo3_base.sbatch) | `allenai/Olmo-3-1125-32B` | 1 | base |
+| 15 | [run_olmo31_instruct_sft.sbatch](continuation_dynamic/run_olmo31_instruct_sft.sbatch) | `allenai/Olmo-3.1-32B-Instruct-SFT` | 1 | instruct, SFT stage |
+| 16 | [run_olmo31_instruct_dpo.sbatch](continuation_dynamic/run_olmo31_instruct_dpo.sbatch) | `allenai/Olmo-3.1-32B-Instruct-DPO` | 1 | instruct, DPO stage |
+| 17 | [run_olmo31_instruct.sbatch](continuation_dynamic/run_olmo31_instruct.sbatch) | `allenai/Olmo-3.1-32B-Instruct` | 1 | instruct, final (RLVR) |
+| 18 | [run_olmo3_think_sft.sbatch](continuation_dynamic/run_olmo3_think_sft.sbatch) | `allenai/Olmo-3-32B-Think-SFT` | 1 | reasoning, SFT, always thinks, mult=2.0 |
+| 19 | [run_olmo3_think_dpo.sbatch](continuation_dynamic/run_olmo3_think_dpo.sbatch) | `allenai/Olmo-3-32B-Think-DPO` | 1 | reasoning, DPO, always thinks, mult=2.0 |
+| 20 | [run_olmo31_think.sbatch](continuation_dynamic/run_olmo31_think.sbatch) | `allenai/Olmo-3.1-32B-Think` | 1 | reasoning, final (RL), always thinks, mult=2.0 |
 
 ### Comparison groups
 
 - **Base vs Instruct** (same architecture, different post-training): runs 1↔2, 3↔4, 5↔6, 7↔8
 - **Instruct vs Reasoning** (same model family, thinking off vs on): runs 9↔10, 11↔12
 - **Reasoning-only** (always-thinking, no instruct analogue): run 13 (QwQ-32B)
+- **Olmo-3 post-training staircase** (same base, progressive stages): run 14 (base) → 15 (Instruct-SFT) → 16 (Instruct-DPO) → 17 (Instruct-RLVR); and in parallel 14 (base) → 18 (Think-SFT) → 19 (Think-DPO) → 20 (Think-RL). Lets you isolate the effect of each post-training phase on narrative-continuation behavior within a single model family. Olmo-Think variants are always-thinking (chat template pre-seeds `<think>`), so `strip_thinking()` runs on every output.
 
 ### Submit
 

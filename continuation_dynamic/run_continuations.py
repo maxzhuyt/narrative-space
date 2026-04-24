@@ -53,12 +53,21 @@ BASE_MODELS = {
     "mistralai/Mistral-Small-24B-Base-2501",
     "google/gemma-4-31B",
     "meta-llama/Llama-4-Scout-17B-16E",
+    "allenai/Olmo-3-1125-32B",
 }
 
+# Reasoning models come in two flavours:
+#   - enable_thinking-toggleable (Qwen3 family): `--thinking` flips on; default off
+#   - always-thinking (QwQ-32B, all Olmo-Think variants): the chat template
+#     pre-seeds `<think>` in the prompt, so generated text begins mid-block
+#     without an opening tag. strip_thinking() handles both shapes.
 REASONING_MODELS = {
     "Qwen/Qwen3-32B",
     "Qwen/Qwen3.5-35B-A3B",
     "Qwen/QwQ-32B",
+    "allenai/Olmo-3-32B-Think-SFT",
+    "allenai/Olmo-3-32B-Think-DPO",
+    "allenai/Olmo-3.1-32B-Think",
 }
 
 VLM_MODELS = {

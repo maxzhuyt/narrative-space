@@ -1,5 +1,5 @@
 #!/bin/bash
-# Submit all 13 model continuation jobs to DeltaAI ghx4 partition.
+# Submit all 20 model continuation jobs to DeltaAI ghx4 partition.
 # Usage: bash submit_all.sh
 
 set -u
@@ -22,7 +22,14 @@ for sbatch_file in \
     run_qwen3_32b_thinking.sbatch \
     run_qwen35_35b_a3b_nothinking.sbatch \
     run_qwen35_35b_a3b_thinking.sbatch \
-    run_qwq_32b.sbatch; do
+    run_qwq_32b.sbatch \
+    run_olmo3_base.sbatch \
+    run_olmo31_instruct_sft.sbatch \
+    run_olmo31_instruct_dpo.sbatch \
+    run_olmo31_instruct.sbatch \
+    run_olmo3_think_sft.sbatch \
+    run_olmo3_think_dpo.sbatch \
+    run_olmo31_think.sbatch; do
 
     if [ ! -f "$sbatch_file" ]; then
         echo "MISSING: $sbatch_file (skipping)"
