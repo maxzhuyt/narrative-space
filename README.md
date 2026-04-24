@@ -2,7 +2,7 @@
 
 Measuring how language models predict story continuations as context is progressively revealed. Unpredictability (the model's persistent inability to anticipate the rest of the story) is used as a proxy for narrative surprise.
 
-**Current experiment**: a 12-run comparison across base, instruct, and reasoning models on a shared 5001-story corpus, generating 5 continuations per position at 4 revealed-fraction positions (40/60/80/90%).
+**Current experiment**: a 13-run comparison across base, instruct, and reasoning models on a shared 5001-story corpus, generating 5 continuations per position at 4 revealed-fraction positions (40/60/80/90%).
 
 > If you're looking for the earlier v1–v4 close-reading / 100-ending-distance work, see [`archive/2026-04-cleanup/README_pre_continuation_dynamic.md`](archive/2026-04-cleanup/README_pre_continuation_dynamic.md). All the old code lives in `archive/2026-04-cleanup/`.
 
@@ -55,7 +55,7 @@ Key flags (see `--help` for all):
 
 Model class membership is declared by the `BASE_MODELS`, `REASONING_MODELS`, `VLM_MODELS`, and `MISTRAL_MODELS` sets near the top of the script. VLM models receive `limit_mm_per_prompt={"image": 0}`. Mistral models receive `tokenizer_mode=config_format=load_format="mistral"`.
 
-### sbatch files — 12 production jobs
+### sbatch files — 13 production jobs
 
 | # | File | Model | GPUs | Notes |
 |---|---|---|---|---|
@@ -71,11 +71,13 @@ Model class membership is declared by the `BASE_MODELS`, `REASONING_MODELS`, `VL
 | 10 | [run_qwen3_32b_thinking.sbatch](continuation_dynamic/run_qwen3_32b_thinking.sbatch) | `Qwen/Qwen3-32B` | 1 | reasoning, `--thinking`, mult=2.0 |
 | 11 | [run_qwen35_35b_a3b_nothinking.sbatch](continuation_dynamic/run_qwen35_35b_a3b_nothinking.sbatch) | `Qwen/Qwen3.5-35B-A3B` | 1 | reasoning, MoE |
 | 12 | [run_qwen35_35b_a3b_thinking.sbatch](continuation_dynamic/run_qwen35_35b_a3b_thinking.sbatch) | `Qwen/Qwen3.5-35B-A3B` | 1 | reasoning, MoE, `--thinking`, mult=2.0 |
+| 13 | [run_qwq_32b.sbatch](continuation_dynamic/run_qwq_32b.sbatch) | `Qwen/QwQ-32B` | 1 | reasoning-only, always thinks (no toggle), mult=2.0 |
 
 ### Comparison groups
 
 - **Base vs Instruct** (same architecture, different post-training): runs 1↔2, 3↔4, 5↔6, 7↔8
 - **Instruct vs Reasoning** (same model family, thinking off vs on): runs 9↔10, 11↔12
+- **Reasoning-only** (always-thinking, no instruct analogue): run 13 (QwQ-32B)
 
 ### Submit
 

@@ -3,18 +3,20 @@
 Validate vLLM model loading and inference for all models in the comparison.
 
 Tests:
-  1. Tokenizer loading and chat template for each model
-  2. enable_thinking=False works for Qwen3/3.5 reasoning models
-  3. Short generation test for one model (Mistral-Small-24B-Instruct)
-  4. Thinking tag stripping verification
-  5. Base model detection (no chat template)
-  6. Model classification consistency
+  1. Model classification consistency (base / instruct / reasoning)
+  2. Tokenizer loading and chat template presence
+  3. Chat template structure (enable_thinking=False on reasoning models, etc.)
+  4. Thinking mode toggle for Qwen3 / Qwen3.5
+  5. strip_thinking helper behavior
+  6. Short generation test on Mistral-Small-24B-Instruct
 
-Run on a GPU compute node after:
-  salloc --partition=ghx4 --account=bgye --gpus-per-node=1 --cpus-per-task=16 --mem=64G --time=01:00:00
-  ssh <compute_node>
+Run on a GPU compute node. Easiest is via sbatch — the project's sbatch
+wrappers already set HF_TOKEN via `source .env` and activate the conda env.
+Manual invocation:
+
   module load python/miniforge3_pytorch
   conda activate /projects/bgye/envs/llm
+  set -a; source /projects/bgye/yzhu38/narrative_project/.env; set +a
   python validate_models.py
 """
 
@@ -29,21 +31,24 @@ os.environ.setdefault("HF_HOME", "/projects/bgye/models/hf_cache")
 if not os.environ.get("HF_TOKEN"):
     sys.exit("HF_TOKEN not set. Run `source .env` (project root) before this script.")
 
+# Models covered by the current 12-run comparison. If you add a model to
+# run_continuations.py's classification sets, mirror it here.
 MODELS = [
-    ("Qwen/Qwen2.5-32B",                        "base",      False),
-    ("Qwen/Qwen2.5-32B-Instruct",                "instruct",  False),
-    ("mistralai/Mistral-Small-24B-Base-2501",     "base",      False),
-    ("mistralai/Mistral-Small-24B-Instruct-2501","instruct",  False),
-    ("google/gemma-4-31B",                        "base",      False),
-    ("google/gemma-4-31B-it",                     "instruct",  False),
-    ("Qwen/Qwen3-32B",                           "reasoning", False),
-    ("Qwen/Qwen3-30B-A3B",                       "reasoning", False),
-    ("Qwen/Qwen3.5-35B-A3B",                     "reasoning", False),
-    ("deepseek-ai/DeepSeek-R1-Distill-Qwen-32B", "reasoning", False),
+    ("Qwen/Qwen2.5-32B",                           "base",      False),
+    ("Qwen/Qwen2.5-32B-Instruct",                  "instruct",  False),
+    ("mistralai/Mistral-Small-24B-Base-2501",      "base",      False),
+    ("mistralai/Mistral-Small-24B-Instruct-2501",  "instruct",  False),
+    ("google/gemma-4-31B",                         "base",      False),
+    ("google/gemma-4-31B-it",                      "instruct",  False),
+    ("meta-llama/Llama-4-Scout-17B-16E",           "base",      False),
+    ("meta-llama/Llama-4-Scout-17B-16E-Instruct",  "instruct",  False),
+    ("Qwen/Qwen3-32B",                             "reasoning", False),
+    ("Qwen/Qwen3.5-35B-A3B",                       "reasoning", False),
+    ("Qwen/QwQ-32B",                               "reasoning", False),
 ]
 
 sys.path.insert(0, "/projects/bgye/yzhu38/narrative_project/continuation_dynamic")
-from run_continuations import model_shortname, is_base_model, is_reasoning_model, strip_thinking
+from run_continuations import is_base_model, is_reasoning_model, strip_thinking
 
 import re
 
@@ -69,7 +74,6 @@ print("=" * 70)
 # Test 1: Model classification
 print("\n--- Test 1: Model Classification ---")
 for model_id, expected_type, _ in MODELS:
-    shortname = model_shortname(model_id)
     is_base = is_base_model(model_id)
     is_reason = is_reasoning_model(model_id)
     if expected_type == "base":
@@ -122,7 +126,7 @@ for model_id, model_type, _ in MODELS:
         continue
 
     try:
-        if model_type == "reasoning" and "DeepSeek-R1" not in model_id:
+        if model_type == "reasoning":
             prompt = tok.apply_chat_template(
                 msgs, tokenize=False, add_generation_prompt=True,
                 enable_thinking=False
@@ -130,13 +134,6 @@ for model_id, model_type, _ in MODELS:
             has_think = THINK_OPEN in prompt or THINK_CLOSE in prompt
             test(f"{model_id} enable_thinking=False no think tags",
                  not has_think, f"found think tags in prompt")
-        elif "DeepSeek-R1" in model_id:
-            ds_msgs = [{"role": "user", "content": "Continue this story."}]
-            prompt = tok.apply_chat_template(
-                ds_msgs, tokenize=False, add_generation_prompt=True
-            )
-            test(f"{model_id} DeepSeek chat template works",
-                 len(prompt) > 0, f"prompt length={len(prompt)}")
         else:
             prompt = tok.apply_chat_template(
                 msgs, tokenize=False, add_generation_prompt=True
@@ -150,7 +147,7 @@ for model_id, model_type, _ in MODELS:
 
 # Test 4: Thinking mode toggle for Qwen3 models
 print("\n--- Test 4: Thinking Mode Toggle ---")
-for qwen_model in ["Qwen/Qwen3-32B", "Qwen/Qwen3-30B-A3B", "Qwen/Qwen3.5-35B-A3B"]:
+for qwen_model in ["Qwen/Qwen3-32B", "Qwen/Qwen3.5-35B-A3B"]:
     if qwen_model not in tokenizer_results:
         print(f"  [SKIP] {qwen_model} not loaded")
         continue
@@ -184,12 +181,12 @@ test("strip_thinking preserves text outside blocks",
      "The twist was unexpected." in stripped,
      f"stripped={repr(stripped)}")
 
-# Simulate DeepSeek-R1 output
-ds_output = f"{THINK_OPEN}\nLet me think about this story.\nThe cat sat on the mat.\n{THINK_CLOSE}\nThe dog bounded through the door."
-stripped_ds = strip_thinking(ds_output)
-test("DeepSeek-R1 style output stripped correctly",
-     THINK_OPEN not in stripped_ds and THINK_CLOSE not in stripped_ds,
-     f"stripped={repr(stripped_ds[:80])}")
+# Multi-line think block (simulates a reasoning model's raw output)
+long_output = f"{THINK_OPEN}\nLet me think about this story.\nThe cat sat on the mat.\n{THINK_CLOSE}\nThe dog bounded through the door."
+stripped_long = strip_thinking(long_output)
+test("multi-line think block stripped correctly",
+     THINK_OPEN not in stripped_long and THINK_CLOSE not in stripped_long,
+     f"stripped={repr(stripped_long[:80])}")
 
 # Test 6: vLLM generation test
 print("\n--- Test 6: Full Generation Test (Mistral-Small-24B-Instruct) ---")

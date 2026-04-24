@@ -58,6 +58,7 @@ BASE_MODELS = {
 REASONING_MODELS = {
     "Qwen/Qwen3-32B",
     "Qwen/Qwen3.5-35B-A3B",
+    "Qwen/QwQ-32B",
 }
 
 VLM_MODELS = {
@@ -108,10 +109,25 @@ BASE_PROMPT_TEMPLATE = "{story_so_far}"
 # ---------------------------------------------------------------------------
 
 _THINK_RE = re.compile(r"<think>.*?</think>", re.DOTALL | re.IGNORECASE)
+_THINK_CLOSE_RE = re.compile(r"</think>", re.IGNORECASE)
 
 
 def strip_thinking(text):
-    return _THINK_RE.sub("", text).lstrip()
+    """Remove chain-of-thought tokens from a reasoning-model output.
+
+    Handles two template shapes:
+      1. `<think>...</think>ANSWER` — Qwen3 with enable_thinking=True.
+         The paired regex strips the whole block.
+      2. `...</think>ANSWER` — QwQ-32B style, where the template pre-seeds
+         `<think>\\n` into the prompt so generated text begins mid-block
+         without an opening tag. Anything up through the first `</think>`
+         is treated as thinking.
+    """
+    text = _THINK_RE.sub("", text)
+    m = _THINK_CLOSE_RE.search(text)
+    if m is not None:
+        text = text[m.end():]
+    return text.lstrip()
 
 
 def discover_stories(data_dir, max_id=MAX_STORY_ID, max_words=MAX_WORD_COUNT,
