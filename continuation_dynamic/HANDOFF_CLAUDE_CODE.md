@@ -11,7 +11,7 @@ Rewrite the continuation generation pipeline on the DeltaAI (NCSA) cluster to ru
 - **Nodes**: 4× NVIDIA GH200 120GB (Grace-Hopper Superchip) per node
 - **Module**: `python/miniforge3_pytorch`
 - **Conda env**: `/projects/bgye/envs/llm` (vLLM 0.19.1, PyTorch 2.10.0+cu129, transformers 5.6.2)
-- **GPU allocation**: `--gpus-per-node=1` for most models, `--gpus-per-node=2` for Llama-4-Scout (TP=2; was originally sized as TP=4 based on a mistaken H100 96GB assumption)
+- **GPU allocation**: `--gpus-per-node=1` for most models, `--gpus-per-node=4` for Llama-4-Scout (TP=4 — 218 GB bf16 weights need 4×96 GiB HBM3; Slurm `gh200_120gb` label is CPU-side LPDDR5X, not HBM)
 - **Project path**: `/projects/bgye/yzhu38/narrative_project/`
 - **NVMe cache**: `/work/nvme/bgye/yzhu38/cache/`
 - **HF cache**: `/projects/bgye/models/hf_cache/`
