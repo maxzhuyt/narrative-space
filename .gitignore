@@ -1,0 +1,33 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+
+# Superseded material (kept locally, not pushed)
+archive/
+
+# Generated results (per-model continuation JSONs can be 50–100 MB each)
+continuation_dynamic/results/
+continuation_dynamic/results_*/
+continuation_dynamic/smoke_results/
+
+# SLURM logs and other runtime output
+continuation_dynamic/logs/
+logs/
+
+# Large input corpus (tracked out-of-band)
+NEWCORPUS_CLEANED/
+
+# Old corpus + results paths (kept in case anything still refers to them)
+results/
+results_scaled/
+results_scaled_*/
+results_thinking/
+distances/
+BASELINE_CORPUS/results/
+BASELINE_CORPUS/results_sglang/
+BASELINE_CORPUS/ghostbuster-data/
+
+# Scratch / legacy
+endings_fix.json
+.git.old-repo/
